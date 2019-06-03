@@ -27,7 +27,7 @@ class Merge(object):
         elif isinstance(self.value, set):
             self.value = self.value | set(value)
         elif isinstance(self.value, dict):
-            for k, v in value.iteritems():
+            for k, v in value.items():
                 if k not in self.value:
                     self.value[k] = v
         else:
@@ -102,7 +102,7 @@ class Hiera(object):
         # Load all backends
         self.backends = {}
         for backend in self.base[':backends']:
-            obj = filter(lambda i: i.NAME == backend, backends)
+            obj = [i for i in backends if i.NAME == backend]
             if not len(obj):
                 raise Exception("Invalid Backend: `{}`".format(backend))
             self.backends[backend] = obj[0](self, self.base.get(":{}".format(backend)))
@@ -121,7 +121,7 @@ class Hiera(object):
             self.hierarchy.append(rformat.sub("{\g<1>}", path, count=0))
 
         # Load our backends
-        for backend in self.backends.values():
+        for backend in list(self.backends.values()):
             backend.datadir = rformat.sub("{\g<1>}", backend.datadir, count=0)
 
         # Now pre-load/cache a bunch of global stuff. If context vars where provided
@@ -155,7 +155,7 @@ class Hiera(object):
         Returns true if any resolving or interpolation can be done on the provided
         string
         """
-        if (isinstance(s, str) or isinstance(s, unicode)) and (function.findall(s) or interpolate.findall(s)):
+        if (isinstance(s, str) or isinstance(s, str)) and (function.findall(s) or interpolate.findall(s)):
             return True
         return False
 
@@ -230,7 +230,7 @@ class Hiera(object):
         within a dictionary.
         """
         new_obj = OrderedDict()
-        for k, v in obj.iteritems():
+        for k, v in obj.items():
             new_obj[k] = self.resolve(v, paths, context, merge)
         return new_obj
 
@@ -290,12 +290,12 @@ class Hiera(object):
         new_context.update(kwargs)
 
         # Filter None values
-        new_context = {k: v for k, v in new_context.items() if v}
+        new_context = {k: v for k, v in list(new_context.items()) if v}
 
         # First, we need to resolve a list of valid paths, in order and load them
         paths = []
 
-        for backend in self.backends.values():
+        for backend in list(self.backends.values()):
             for path in self.hierarchy:
                 try:
                     path = os.path.join(
