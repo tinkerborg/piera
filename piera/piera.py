@@ -145,7 +145,7 @@ class Hiera(object):
         """
         if path not in self.cache or ignore_cache:
             try:
-                self.cache[path] = backend.load(open(path).read().decode('utf8'))
+                self.cache[path] = backend.load(open(path).read())
             except Exception as e:
                 raise Exception("Failed to load file {}: `{}`".format(path, e))
         return path
